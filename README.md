@@ -51,9 +51,8 @@ screen), so you don't need to memorize this table.
 ## Setup
 
 ```bash
-git clone <this repo> eink-dashboard   # or copy the eink-dashboard/ folder to the Pi
+git clone https://github.com/tcodd86/eink-dashboard.git
 cd eink-dashboard
-chmod +x setup.sh
 ./setup.sh
 ```
 
