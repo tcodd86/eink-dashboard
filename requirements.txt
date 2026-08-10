@@ -1,0 +1,6 @@
+Pillow
+requests
+gpiozero
+spidev
+lgpio
+catholic-mass-readings

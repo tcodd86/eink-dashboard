@@ -1,0 +1,13 @@
+"""Copy this file to config_local.py and fill in your own coordinates.
+
+config_local.py is gitignored -- it's kept out of version control since it
+reveals your approximate location.
+
+Find your latitude/longitude from your zip code with, e.g.:
+    curl https://api.zippopotam.us/us/YOUR_ZIP
+or by right-clicking your location on https://www.google.com/maps and
+copying the coordinates shown.
+"""
+
+LATITUDE = 0.0
+LONGITUDE = 0.0

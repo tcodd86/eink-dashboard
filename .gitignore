@@ -1,0 +1,6 @@
+.venv/
+.devvenv/
+__pycache__/
+*.pyc
+preview_*.png
+config_local.py

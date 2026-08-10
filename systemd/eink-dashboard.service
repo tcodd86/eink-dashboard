@@ -1,0 +1,15 @@
+[Unit]
+Description=E-ink Dashboard (time, weather, Mass readings)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/eink-dashboard
+ExecStart=/home/pi/eink-dashboard/.venv/bin/python3 /home/pi/eink-dashboard/main.py
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
