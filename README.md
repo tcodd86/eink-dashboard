@@ -142,6 +142,14 @@ Reboot the Pi (`sudo reboot`) to confirm it starts automatically.
   actual error if it persists for more than a day.
 - **`curl_cffi` fails to install**: you're likely on 32-bit Raspberry Pi OS;
   switch to 64-bit Bookworm (see Prerequisites).
+- **`lgpio` fails to build** (`swig: No such file or directory`, or
+  `cannot find -llgpio`): `gpiozero` needs a working `lgpio` to talk to the
+  GPIO pins, but its pip package builds from source and that build chain is
+  unreliable across Raspberry Pi OS versions. `setup.sh` avoids this by
+  installing the pre-built `python3-lgpio` apt package and creating the venv
+  with `--system-site-packages`. If you hit this error, your `.venv` was
+  probably created before that fix -- delete and recreate it:
+  `rm -rf .venv && ./setup.sh`.
 
 ## Known limitations (by design, for v1)
 

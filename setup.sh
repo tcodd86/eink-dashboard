@@ -9,7 +9,7 @@ python3 -c "import sys; assert sys.version_info >= (3, 10), 'Python 3.10+ requir
 
 echo "== Installing system dependencies =="
 sudo apt-get update
-sudo apt-get install -y python3-venv python3-pip libopenjp2-7 fonts-dejavu-core git swig
+sudo apt-get install -y python3-venv python3-pip libopenjp2-7 fonts-dejavu-core git python3-lgpio
 
 echo "== Enabling SPI =="
 REBOOT_NEEDED=0
@@ -22,7 +22,9 @@ else
 fi
 
 echo "== Creating virtual environment (.venv) =="
-python3 -m venv .venv
+# --system-site-packages so the venv can see the apt-installed python3-lgpio
+# (see requirements.txt for why lgpio isn't pip-installed).
+python3 -m venv --system-site-packages .venv
 ./.venv/bin/pip install --upgrade pip
 ./.venv/bin/pip install -r requirements.txt
 

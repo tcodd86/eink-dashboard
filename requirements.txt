@@ -2,5 +2,10 @@ Pillow
 requests
 gpiozero
 spidev
-lgpio
 catholic-mass-readings
+
+# lgpio is intentionally NOT listed here -- its pip package builds from
+# source (needs swig + a pre-installed liblgpio to link against) and that
+# build chain is unreliable across Raspberry Pi OS versions. setup.sh
+# instead installs Raspberry Pi OS's pre-built `python3-lgpio` apt package
+# and creates the venv with --system-site-packages so it's importable.
