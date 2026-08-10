@@ -9,7 +9,7 @@ python3 -c "import sys; assert sys.version_info >= (3, 10), 'Python 3.10+ requir
 
 echo "== Installing system dependencies =="
 sudo apt-get update
-sudo apt-get install -y python3-venv python3-pip libopenjp2-7 fonts-dejavu-core git
+sudo apt-get install -y python3-venv python3-pip libopenjp2-7 fonts-dejavu-core git swig
 
 echo "== Enabling SPI =="
 REBOOT_NEEDED=0
