@@ -24,12 +24,16 @@ def render(weather: Weather | None, now: datetime.datetime | None = None) -> Ima
     content_right = icons.draw_sidebar(image, _SIDEBAR_ICONS, renderer.CANVAS_SIZE, renderer.SIDEBAR_WIDTH)
     content_width = content_right
 
-    time_font = renderer.load_font(52, bold=True)
-    date_font = renderer.load_font(17)
-    weather_font = renderer.load_font(22, bold=True)
-
     time_str = now.strftime(config.TIME_FORMAT).lstrip("0")
     date_str = f"{now.strftime(config.DATE_FORMAT)} {now.day}"
+
+    # Auto-fit rather than a fixed size: DejaVu Sans (the Pi's actual runtime
+    # font) renders noticeably wider than Arial (the Windows dev-preview
+    # fallback) at the same point size, so a size that fits in preview can
+    # overflow off-screen on real hardware.
+    time_font = renderer.fit_font_to_width(draw, time_str, max_width=content_width - 16, max_size=52, bold=True, min_size=28)
+    date_font = renderer.load_font(17)
+    weather_font = renderer.load_font(22, bold=True)
 
     _draw_centered(draw, time_str, time_font, content_width, y=26)
     _draw_centered(draw, date_str, date_font, content_width, y=100)

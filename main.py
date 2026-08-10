@@ -14,6 +14,7 @@ import signal
 import threading
 
 from gpiozero import Button
+from PIL import Image
 
 import config
 from display.epd_driver import epd2in7
@@ -168,7 +169,13 @@ class App:
         self._push(image)
 
     def _push(self, image) -> None:
-        self._epd.display(self._epd.getbuffer(image))
+        # The vendored driver's getbuffer() has a fixed landscape->native-buffer
+        # mapping that comes out rotated 180 degrees from this panel's actual
+        # mounted orientation. Rotate here (not in renderer.py/screens/*.py,
+        # which stay hardware-orientation-agnostic) rather than hand-editing
+        # the vendored driver.
+        rotated = image.transpose(Image.Transpose.ROTATE_180)
+        self._epd.display(self._epd.getbuffer(rotated))
 
 
 def main() -> None:

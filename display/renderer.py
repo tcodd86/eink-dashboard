@@ -61,6 +61,26 @@ def load_font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
     return font
 
 
+def fit_font_to_width(
+    draw: ImageDraw.ImageDraw, text: str, max_width: int, max_size: int, bold: bool = False, min_size: int = 10
+) -> ImageFont.FreeTypeFont:
+    """Returns the largest font (from `max_size` down to `min_size`) at which
+    `text` fits within `max_width` px.
+
+    Font metrics vary between the DejaVu Sans used on the Pi and the Arial
+    fallback used for local/Windows preview rendering (DejaVu runs wider per
+    point size), so a size tuned against one can silently overflow on the
+    other. Auto-fitting avoids having to hand-pick a size that "should" fit.
+    """
+    size = max_size
+    while size > min_size:
+        font = load_font(size, bold=bold)
+        if draw.textlength(text, font=font) <= max_width:
+            return font
+        size -= 1
+    return load_font(min_size, bold=bold)
+
+
 def new_canvas() -> Image.Image:
     """Returns a blank white landscape canvas sized for this panel."""
     return Image.new("1", CANVAS_SIZE, WHITE)
