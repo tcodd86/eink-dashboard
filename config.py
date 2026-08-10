@@ -28,19 +28,19 @@ DATE_FORMAT = "%a, %b"  # day number is appended separately (see screens/home.py
 
 # --- Buttons ------------------------------------------------------------------
 # BCM GPIO pin numbers for the 4 physical buttons on the HAT, top to bottom.
-# UNVERIFIED from Waveshare's own docs (their schematic PDF wasn't reachable) --
-# sourced from a third-party writeup. Run button_test.py once on real hardware
-# to confirm this mapping before trusting it; edit here if it's wrong.
+# Verified with button_test.py on real hardware -- the reverse of the
+# third-party writeup this was originally sourced from (button1/top is
+# GPIO19, not GPIO5).
 #
 # Button meaning is context-dependent (see main.py):
 #   On the Home screen:    1=7-Day Forecast 2=First Reading 3=Psalm 4=Gospel
 #   On the Forecast screen: 1=Back to Home  2/3/4=unused
 #   On a reading screen:    1=Back to Home  2=Scroll up 3=Scroll down 4=Next reading
 BUTTON_PINS = {
-    "button1": 5,
-    "button2": 6,
-    "button3": 13,
-    "button4": 19,
+    "button1": 19,
+    "button2": 13,
+    "button3": 6,
+    "button4": 5,
 }
 
 # Order buttons 2/3/4 cycle through from the Home screen, and that button4

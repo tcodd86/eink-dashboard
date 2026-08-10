@@ -26,9 +26,11 @@ buttons; the app starts automatically on boot via systemd.
 
 The Waveshare user manual and spec sheet for this panel only document its
 8-pin SPI interface -- neither mentions the 4 physical buttons on the HAT.
-The GPIO pin numbers in `config.py` (`BUTTON_PINS`) come from a third-party
-writeup, not Waveshare's own docs, so **run `button_test.py` once on real
-hardware** (see Setup below) to confirm the mapping before trusting it.
+The GPIO pin numbers in `config.py` (`BUTTON_PINS`) were confirmed with
+`button_test.py` on real hardware (button1/top = GPIO19, ... button4/bottom
+= GPIO5 -- the reverse of the third-party writeup they were originally
+sourced from). If buttons ever seem mismatched on your unit, re-run
+`button_test.py` (see Setup below) and update `config.py`.
 
 Button behavior is context-dependent:
 
