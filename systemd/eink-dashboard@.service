@@ -1,0 +1,19 @@
+[Unit]
+Description=E-ink Dashboard (time, weather, Mass readings)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# %i = the instance name after the @ (i.e. the username passed at `systemctl
+# enable eink-dashboard@<username>.service`); %h = that user's home
+# directory. No username is hardcoded here -- see README "Run automatically
+# on boot".
+User=%i
+WorkingDirectory=%h/eink-dashboard
+ExecStart=%h/eink-dashboard/.venv/bin/python3 %h/eink-dashboard/main.py
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

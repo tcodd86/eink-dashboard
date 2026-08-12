@@ -104,21 +104,28 @@ Edit `config.py` for everything else:
 
 ## Run automatically on boot
 
+`systemd/eink-dashboard@.service` is a systemd *template* unit -- no
+username is hardcoded in it. It expects the project to live at
+`~/eink-dashboard` for whatever user you run it as; the username is passed
+as the instance name (the part after `@`) when you enable it:
+
 ```bash
-sudo cp systemd/eink-dashboard.service /etc/systemd/system/
+sudo cp systemd/eink-dashboard@.service /etc/systemd/system/
 sudo systemctl daemon-reload
-sudo systemctl enable --now eink-dashboard.service
+sudo systemctl enable --now eink-dashboard@<username>.service
 ```
 
-The unit file assumes the project lives at `/home/pi/eink-dashboard` and
-runs as the `pi` user -- edit `systemd/eink-dashboard.service` first if
-either differs on your setup, then re-copy and `daemon-reload`.
+Replace `<username>` with the account you cloned/set up the project under
+(check with `whoami`). If the project lives somewhere other than
+`~/eink-dashboard` for that user, the template won't fit -- copy it to a
+plain (non-`@`) unit file instead and hardcode `WorkingDirectory=`/
+`ExecStart=` to the real path.
 
-Check it's running:
+Check it's running (substituting your username again):
 
 ```bash
-sudo systemctl status eink-dashboard.service
-journalctl -u eink-dashboard.service -f
+sudo systemctl status eink-dashboard@<username>.service
+journalctl -u eink-dashboard@<username>.service -f
 ```
 
 Reboot the Pi (`sudo reboot`) to confirm it starts automatically.
@@ -127,9 +134,9 @@ Reboot the Pi (`sudo reboot`) to confirm it starts automatically.
 
 - **`e-Paper init failed` / SPI errors**: SPI isn't enabled. Run
   `sudo raspi-config` -> Interface Options -> SPI -> enable, then reboot.
-- **`PermissionError` on GPIO/SPI**: the service's `User=` (default `pi`)
-  needs to be in the `gpio` and `spi` groups -- `groups pi` to check;
-  `sudo usermod -aG gpio,spi pi` to fix, then log out/in or reboot.
+- **`PermissionError` on GPIO/SPI**: the service's user needs to be in the
+  `gpio` and `spi` groups -- `groups <username>` to check;
+  `sudo usermod -aG gpio,spi <username>` to fix, then log out/in or reboot.
 - **Buttons don't do anything, or the wrong button does the wrong thing**:
   re-run `button_test.py` and fix `BUTTON_PINS` in `config.py`.
 - **`ImportError: libopenjp2.so.7`**: `sudo apt-get install libopenjp2-7`
