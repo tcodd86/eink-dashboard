@@ -6,12 +6,16 @@ Wants=network-online.target
 [Service]
 Type=simple
 # %i = the instance name after the @ (i.e. the username passed at `systemctl
-# enable eink-dashboard@<username>.service`); %h = that user's home
-# directory. No username is hardcoded here -- see README "Run automatically
-# on boot".
+# enable eink-dashboard@<username>.service`). Deliberately using /home/%i
+# rather than the %h specifier: %h is documented as "the configured user's
+# home directory", but on system-scope template units it can instead resolve
+# to the *manager's* home (i.e. /root, since this runs as a system service)
+# rather than following User=%i -- confirmed the hard way. /home/%i sidesteps
+# that by not depending on %h's resolution at all. No username is hardcoded
+# here -- see README "Run automatically on boot".
 User=%i
-WorkingDirectory=%h/eink-dashboard
-ExecStart=%h/eink-dashboard/.venv/bin/python3 %h/eink-dashboard/main.py
+WorkingDirectory=/home/%i/eink-dashboard
+ExecStart=/home/%i/eink-dashboard/.venv/bin/python3 /home/%i/eink-dashboard/main.py
 Restart=on-failure
 RestartSec=5
 
