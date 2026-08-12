@@ -169,11 +169,13 @@ class App:
         self._push(image)
 
     def _push(self, image) -> None:
-        # The vendored driver's getbuffer() has a fixed landscape->native-buffer
-        # mapping that comes out rotated 180 degrees from this panel's actual
-        # mounted orientation. Rotate here (not in renderer.py/screens/*.py,
-        # which stay hardware-orientation-agnostic) rather than hand-editing
-        # the vendored driver.
+        # This panel is physically mounted buttons-on-the-right, which is
+        # upside down relative to the silkscreen's intended (buttons-on-the-
+        # left) orientation -- so both the display and the button order (see
+        # config.BUTTON_PINS) are flipped 180 degrees from the vendored
+        # driver's/third-party writeup's assumptions. Rotate the image here
+        # (not in renderer.py/screens/*.py, which stay hardware-orientation-
+        # agnostic) rather than hand-editing the vendored driver.
         rotated = image.transpose(Image.Transpose.ROTATE_180)
         self._epd.display(self._epd.getbuffer(rotated))
 

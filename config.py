@@ -30,7 +30,9 @@ DATE_FORMAT = "%a, %b"  # day number is appended separately (see screens/home.py
 # BCM GPIO pin numbers for the 4 physical buttons on the HAT, top to bottom.
 # Verified with button_test.py on real hardware -- the reverse of the
 # third-party writeup this was originally sourced from (button1/top is
-# GPIO19, not GPIO5).
+# GPIO19, not GPIO5), because this panel is physically mounted buttons-on-
+# the-right, upside down relative to the silkscreen's intended orientation
+# (see the display rotation comment in main.py._push).
 #
 # Button meaning is context-dependent (see main.py):
 #   On the Home screen:    1=7-Day Forecast 2=First Reading 3=Psalm 4=Gospel
