@@ -57,6 +57,9 @@ source, same caveat as the Mass readings scrape below: the app caches the
 last successfully fetched word and keeps showing it if a day's fetch fails,
 rather than showing nothing.
 
+Any screen other than Home automatically returns to Home after 5 minutes
+without a button press (`config.IDLE_TIMEOUT_SECONDS`).
+
 ## Setup
 
 ```bash

@@ -7,6 +7,9 @@ Button behavior is context-dependent:
   On the Mass Readings menu:   1=Back to Home   2=First Reading 3=Psalm 4=Gospel
   On the Latin Word screen:    1=Back to Home   2/3/4=unused
   On a reading screen:         1=Back to Home   2=Scroll up 3=Scroll down 4=Next reading
+
+Any screen other than Home auto-returns to Home after config.IDLE_TIMEOUT_SECONDS
+without a button press (see _idle_timeout_loop).
 """
 
 from __future__ import annotations
@@ -15,6 +18,7 @@ import datetime
 import logging
 import signal
 import threading
+import time
 
 from gpiozero import Button
 from PIL import Image
@@ -45,6 +49,9 @@ class App:
         # "home", "forecast", "readings_menu", "latin_word", or one of config.READING_KEYS
         self._screen = "home"
         self._page = 0
+        # time.monotonic(), not datetime.now(): immune to wall-clock jumps
+        # (NTP sync, DST) that would otherwise throw off idle-timeout math.
+        self._last_activity = time.monotonic()
 
     def start(self) -> None:
         signal.signal(signal.SIGTERM, self._handle_stop_signal)
@@ -66,6 +73,7 @@ class App:
         threading.Thread(target=self._readings_loop, daemon=True).start()
         threading.Thread(target=self._latin_word_loop, daemon=True).start()
         threading.Thread(target=self._clock_loop, daemon=True).start()
+        threading.Thread(target=self._idle_timeout_loop, daemon=True).start()
 
         with self._lock:
             self._show_home()
@@ -109,6 +117,14 @@ class App:
                 if self._screen == "home":
                     self._show_home()
 
+    def _idle_timeout_loop(self) -> None:
+        while not self._stop.wait(config.IDLE_TIMEOUT_CHECK_SECONDS):
+            with self._lock:
+                idle_for = time.monotonic() - self._last_activity
+                if self._screen != "home" and idle_for >= config.IDLE_TIMEOUT_SECONDS:
+                    logger.info("No activity for %.0fs (screen=%s) -> home", idle_for, self._screen)
+                    self._show_home()
+
     # --- buttons ---------------------------------------------------------------
 
     def _setup_buttons(self) -> None:
@@ -126,6 +142,7 @@ class App:
 
     def on_button1(self) -> None:
         with self._lock:
+            self._last_activity = time.monotonic()
             if self._screen == "home":
                 logger.info("button1 pressed (home) -> forecast")
                 self._show_forecast()
@@ -135,6 +152,7 @@ class App:
 
     def on_button2(self) -> None:
         with self._lock:
+            self._last_activity = time.monotonic()
             if self._screen == "home":
                 logger.info("button2 pressed (home) -> readings_menu")
                 self._show_readings_menu()
@@ -152,6 +170,7 @@ class App:
 
     def on_button3(self) -> None:
         with self._lock:
+            self._last_activity = time.monotonic()
             if self._screen == "home":
                 logger.info("button3 pressed (home) -> latin_word")
                 self._show_latin_word()
@@ -169,6 +188,7 @@ class App:
 
     def on_button4(self) -> None:
         with self._lock:
+            self._last_activity = time.monotonic()
             if self._screen == "readings_menu":
                 logger.info("button4 pressed (readings_menu) -> %s", config.READING_KEYS[2])
                 self._show_reading(config.READING_KEYS[2], page=0)

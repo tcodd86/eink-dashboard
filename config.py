@@ -32,6 +32,13 @@ TIME_FORMAT = "%I:%M %p"  # 12-hour clock with AM/PM, e.g. "02:47 PM"
 DATE_FORMAT = "%a, %b"  # day number is appended separately (see screens/home.py) to
 # avoid relying on the non-portable %-d / %#d "no leading zero" strftime flag
 
+# --- Idle timeout ---------------------------------------------------------------
+# Any button press resets this, regardless of screen or whether it was a no-op.
+IDLE_TIMEOUT_SECONDS = 300  # return to Home after this long without a button press
+IDLE_TIMEOUT_CHECK_SECONDS = 15  # how often to check (just a polling granularity,
+# not a precision guarantee -- the actual return can lag up to this long past
+# IDLE_TIMEOUT_SECONDS)
+
 # --- Buttons ------------------------------------------------------------------
 # BCM GPIO pin numbers for the 4 physical buttons on the HAT, top to bottom.
 # Verified with button_test.py on real hardware -- the reverse of the
