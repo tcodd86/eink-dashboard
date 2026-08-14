@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from PIL import Image
 
-from screens import forecast, home, reading, readings_menu
+from screens import forecast, home, hourly_forecast, reading, readings_menu
 from screens import latin_word as latin_word_screen
 from sources.latin_word import LatinWordSource
 from sources.mass_readings import MassReadingsSource, Reading
@@ -71,6 +71,10 @@ def main() -> None:
     save_preview(home.render(weather), "preview_home.png")
     save_preview(forecast.render(ws.get_cached_forecast()), "preview_forecast.png")
     save_preview(readings_menu.render(), "preview_readings_menu.png")
+
+    hourly_img, hourly_page, hourly_total = hourly_forecast.render(ws.get_cached_hourly())
+    print(f"hourly forecast page {hourly_page + 1}/{hourly_total}")
+    save_preview(hourly_img, "preview_hourly_forecast.png")
 
     lws = LatinWordSource()
     lws.refresh()

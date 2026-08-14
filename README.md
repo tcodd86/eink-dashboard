@@ -1,10 +1,10 @@
 # E-ink Dashboard
 
 Shows the current time (updated every minute), current weather, a 7-day
-forecast, today's Catholic Mass readings, and a Latin word of the day on a
-Waveshare 2.7" e-Paper HAT connected to a Raspberry Pi 3. Navigation is via
-the HAT's 4 physical buttons; the app starts automatically on boot via
-systemd.
+forecast, a 24-hour hourly forecast, today's Catholic Mass readings, and a
+Latin word of the day on a Waveshare 2.7" e-Paper HAT connected to a
+Raspberry Pi 3. Navigation is via the HAT's 4 physical buttons; the app
+starts automatically on boot via systemd.
 
 ## Hardware
 
@@ -35,12 +35,12 @@ sourced from). If buttons ever seem mismatched on your unit, re-run
 
 Button behavior is context-dependent:
 
-| Button | Home screen | Forecast screen | Mass Readings menu | Latin Word screen | A reading screen |
-|---|---|---|---|---|---|
-| 1 (top) | Open 7-Day Forecast | Back to Home | Back to Home | Back to Home | Back to Home |
-| 2 | Open Mass Readings menu | unused | Open First Reading | unused | Scroll up one page |
-| 3 | Open Latin Word of the Day | unused | Open Responsorial Psalm | unused | Scroll down one page |
-| 4 | unused | unused | Open Gospel | unused | Jump to next reading (First -> Psalm -> Gospel -> ...) |
+| Button | Home screen | Forecast screen | Hourly Forecast | Mass Readings menu | Latin Word screen | A reading screen |
+|---|---|---|---|---|---|---|
+| 1 (top) | Open 7-Day Forecast | Back to Home | Back to Home | Back to Home | Back to Home | Back to Home |
+| 2 | Open Hourly Forecast | unused | Scroll up | Open First Reading | unused | Scroll up one page |
+| 3 | Open Mass Readings menu | unused | Scroll down | Open Responsorial Psalm | unused | Scroll down one page |
+| 4 | Open Latin Word of the Day | unused | unused | Open Gospel | unused | Jump to next reading (First -> Psalm -> Gospel -> ...) |
 
 On Sundays/solemnities, the Mass has an extra "Second Reading" beyond the
 usual 3. Since there's no 5th button for it, it's appended onto the "First

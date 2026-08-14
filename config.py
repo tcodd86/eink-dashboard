@@ -48,8 +48,9 @@ IDLE_TIMEOUT_CHECK_SECONDS = 15  # how often to check (just a polling granularit
 # (see the display rotation comment in main.py._push).
 #
 # Button meaning is context-dependent (see main.py):
-#   On the Home screen:        1=7-Day Forecast 2=Mass Readings menu 3=Latin Word 4=unused
+#   On the Home screen:        1=7-Day Forecast 2=Hourly Forecast 3=Mass Readings menu 4=Latin Word
 #   On the Forecast screen:    1=Back to Home   2/3/4=unused
+#   On the Hourly Forecast:    1=Back to Home   2=Scroll up 3=Scroll down 4=unused
 #   On the Mass Readings menu: 1=Back to Home   2=First Reading 3=Psalm 4=Gospel
 #   On the Latin Word screen:  1=Back to Home   2/3/4=unused
 #   On a reading screen:       1=Back to Home   2=Scroll up 3=Scroll down 4=Next reading

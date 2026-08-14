@@ -2,8 +2,9 @@
 screen state machine, and pushes rendered screens to the e-Paper display.
 
 Button behavior is context-dependent:
-  On the Home screen:          1=7-Day Forecast 2=Mass Readings menu 3=Latin Word 4=unused
+  On the Home screen:          1=7-Day Forecast 2=Hourly Forecast 3=Mass Readings menu 4=Latin Word
   On the Forecast screen:      1=Back to Home   2/3/4=unused
+  On the Hourly Forecast:      1=Back to Home   2=Scroll up 3=Scroll down 4=unused
   On the Mass Readings menu:   1=Back to Home   2=First Reading 3=Psalm 4=Gospel
   On the Latin Word screen:    1=Back to Home   2/3/4=unused
   On a reading screen:         1=Back to Home   2=Scroll up 3=Scroll down 4=Next reading
@@ -25,7 +26,7 @@ from PIL import Image
 
 import config
 from display.epd_driver import epd2in7
-from screens import forecast, home, reading, readings_menu
+from screens import forecast, home, hourly_forecast, reading, readings_menu
 from screens import latin_word as latin_word_screen
 from sources.latin_word import LatinWordSource
 from sources.mass_readings import MassReadingsSource
@@ -46,7 +47,8 @@ class App:
         self._latin_word = LatinWordSource()
         self._buttons: list[Button] = []
 
-        # "home", "forecast", "readings_menu", "latin_word", or one of config.READING_KEYS
+        # "home", "forecast", "hourly_forecast", "readings_menu", "latin_word",
+        # or one of config.READING_KEYS
         self._screen = "home"
         self._page = 0
         # time.monotonic(), not datetime.now(): immune to wall-clock jumps
@@ -154,8 +156,11 @@ class App:
         with self._lock:
             self._last_activity = time.monotonic()
             if self._screen == "home":
-                logger.info("button2 pressed (home) -> readings_menu")
-                self._show_readings_menu()
+                logger.info("button2 pressed (home) -> hourly_forecast")
+                self._show_hourly_forecast()
+            elif self._screen == "hourly_forecast":
+                logger.info("button2 pressed (hourly_forecast) -> scroll up")
+                self._show_hourly_forecast(page=self._page - 1)
             elif self._screen == "readings_menu":
                 logger.info("button2 pressed (readings_menu) -> %s", config.READING_KEYS[0])
                 self._show_reading(config.READING_KEYS[0], page=0)
@@ -172,8 +177,11 @@ class App:
         with self._lock:
             self._last_activity = time.monotonic()
             if self._screen == "home":
-                logger.info("button3 pressed (home) -> latin_word")
-                self._show_latin_word()
+                logger.info("button3 pressed (home) -> readings_menu")
+                self._show_readings_menu()
+            elif self._screen == "hourly_forecast":
+                logger.info("button3 pressed (hourly_forecast) -> scroll down")
+                self._show_hourly_forecast(page=self._page + 1)
             elif self._screen == "readings_menu":
                 logger.info("button3 pressed (readings_menu) -> %s", config.READING_KEYS[1])
                 self._show_reading(config.READING_KEYS[1], page=0)
@@ -189,7 +197,10 @@ class App:
     def on_button4(self) -> None:
         with self._lock:
             self._last_activity = time.monotonic()
-            if self._screen == "readings_menu":
+            if self._screen == "home":
+                logger.info("button4 pressed (home) -> latin_word")
+                self._show_latin_word()
+            elif self._screen == "readings_menu":
                 logger.info("button4 pressed (readings_menu) -> %s", config.READING_KEYS[2])
                 self._show_reading(config.READING_KEYS[2], page=0)
             elif self._screen in config.READING_KEYS:
@@ -212,6 +223,13 @@ class App:
         self._screen = "forecast"
         self._page = 0
         image = forecast.render(self._weather.get_cached_forecast())
+        self._push(image)
+
+    def _show_hourly_forecast(self, page: int = 0) -> None:
+        hourly = self._weather.get_cached_hourly()
+        image, effective_page, _total_pages = hourly_forecast.render(hourly, page)
+        self._screen = "hourly_forecast"
+        self._page = effective_page
         self._push(image)
 
     def _show_readings_menu(self) -> None:

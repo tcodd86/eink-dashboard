@@ -236,6 +236,19 @@ def draw_calendar(draw: ImageDraw.ImageDraw, box: Box, width: int = 2) -> None:
     draw.line((right - w * 0.30, top + h * 0.06, right - w * 0.30, top + h * 0.24), fill=BLACK, width=width)
 
 
+def draw_clock(draw: ImageDraw.ImageDraw, box: Box, width: int = 2) -> None:
+    """A clock face (hands at "10:10") -- the Hourly Forecast icon, pairing
+    with draw_calendar's day-granularity (7-Day Forecast) as the
+    hour-granularity counterpart."""
+    left, top, right, bottom = _square(box)
+    w, h = right - left, bottom - top
+    cx, cy = (left + right) / 2, (top + bottom) / 2
+    r = min(w, h) * 0.42
+    draw.ellipse((cx - r, cy - r, cx + r, cy + r), outline=BLACK, width=width)
+    draw.line((cx, cy, cx - r * 0.35, cy - r * 0.35), fill=BLACK, width=width)  # hour hand -> ~10
+    draw.line((cx, cy, cx + r * 0.55, cy - r * 0.5), fill=BLACK, width=width)  # minute hand -> ~2
+
+
 def draw_book(draw: ImageDraw.ImageDraw, box: Box, width: int = 2) -> None:
     left, top, right, bottom = _square(box)
     w, h = right - left, bottom - top
@@ -305,6 +318,7 @@ _NAV_ICONS = {
     "calendar": draw_calendar,
     "bible": draw_bible,
     "ae": draw_ae_ligature,
+    "clock": draw_clock,
 }
 
 
