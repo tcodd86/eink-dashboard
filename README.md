@@ -173,9 +173,15 @@ Reboot the Pi (`sudo reboot`) to confirm it starts automatically.
 ## Known limitations (by design, for v1)
 
 - **Every screen update does a full refresh** (brief black/white flash),
-  including the once-a-minute clock tick. Partial refresh was skipped to
-  avoid relying on driver-version-dependent behavior; this can be revisited
-  later if the flicker is bothersome.
+  including the once-a-minute clock tick. Investigated partial refresh:
+  Waveshare's vendored V1 driver (`epd2in7.py`, what this panel actually
+  uses -- confirmed by it working correctly this whole project) has no
+  partial-refresh command path at all; that only exists in their `_V2`
+  driver, which talks to a different, incompatible controller chip. True
+  partial refresh isn't available on this specific panel's controller, not
+  just unimplemented in the driver -- decided not to pursue hand-rolled LUT
+  waveforms given the risk of poor visual quality without hardware to
+  iterate against.
 - **The display refreshes more often than the panel datasheet's stated
   180-second minimum** (once a minute on the Home screen) -- an explicit,
   informed tradeoff for this home project, at some undetermined cost to the
