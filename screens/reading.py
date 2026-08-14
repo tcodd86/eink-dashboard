@@ -24,39 +24,11 @@ TITLES = {
 _SIDEBAR_ICONS = ["home", "up", "down", "right"]
 
 # The citation (book/chapter/verse) is only shown on page 1 -- see
-# _paginate_with_shorter_first_page. Later pages reclaim that vertical space
-# for body text instead of repeating it.
+# renderer.paginate_with_shorter_first_page. Later pages reclaim that
+# vertical space for body text instead of repeating it.
 _CITATION_TOP = 28
 _CITATION_BOTTOM = 72
 _BODY_TOP_FIRST_PAGE = 76
-
-
-def _paginate_with_shorter_first_page(
-    draw: ImageDraw.ImageDraw,
-    text: str,
-    font,
-    box: tuple[int, int, int, int],
-    first_page_top: int,
-    line_spacing: int = 4,
-) -> list[list[str]]:
-    """Like renderer.paginate_text, but the first page has less vertical room
-    (top starts at `first_page_top` instead of `box`'s own top) to make space
-    for the citation, since later pages don't repeat it and get the full box."""
-    left, top, right, bottom = box
-    max_width = right - left
-    line_height = renderer.line_height_for(font, line_spacing)
-    lines = renderer.wrap_text(draw, text, font, max_width)
-    if not lines:
-        return [[]]
-
-    first_page_capacity = max(1, (bottom - first_page_top) // line_height)
-    rest_capacity = max(1, (bottom - top) // line_height)
-
-    pages = [lines[:first_page_capacity]]
-    remaining = lines[first_page_capacity:]
-    for i in range(0, len(remaining), rest_capacity):
-        pages.append(remaining[i : i + rest_capacity])
-    return pages
 
 
 def render(reading: Reading | None, key: str, page: int = 0) -> tuple[Image.Image, int, int]:
@@ -87,7 +59,7 @@ def render(reading: Reading | None, key: str, page: int = 0) -> tuple[Image.Imag
         return image, 0, 1
 
     body_box = (8, _CITATION_TOP, content_right - 8, canvas_height - 6)
-    pages = _paginate_with_shorter_first_page(draw, reading.body, body_font, body_box, first_page_top=_BODY_TOP_FIRST_PAGE)
+    pages = renderer.paginate_with_shorter_first_page(draw, reading.body, body_font, body_box, first_page_top=_BODY_TOP_FIRST_PAGE)
     total_pages = len(pages)
     effective_page = max(0, min(page, total_pages - 1))
 

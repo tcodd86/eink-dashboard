@@ -135,6 +135,9 @@ class App:
             elif self._screen in config.READING_KEYS:
                 logger.info("button2 pressed (%s) -> scroll up", self._screen)
                 self._show_reading(self._screen, page=self._page - 1)
+            elif self._screen == "latin_word":
+                logger.info("button2 pressed (latin_word) -> scroll up")
+                self._show_latin_word(page=self._page - 1)
             else:
                 logger.info("button2 pressed (%s) -> no-op", self._screen)
 
@@ -149,6 +152,9 @@ class App:
             elif self._screen in config.READING_KEYS:
                 logger.info("button3 pressed (%s) -> scroll down", self._screen)
                 self._show_reading(self._screen, page=self._page + 1)
+            elif self._screen == "latin_word":
+                logger.info("button3 pressed (latin_word) -> scroll down")
+                self._show_latin_word(page=self._page + 1)
             else:
                 logger.info("button3 pressed (%s) -> no-op", self._screen)
 
@@ -185,10 +191,11 @@ class App:
         image = readings_menu.render()
         self._push(image)
 
-    def _show_latin_word(self) -> None:
+    def _show_latin_word(self, page: int = 0) -> None:
+        latin_word = self._latin_word.get_cached()
+        image, effective_page, _total_pages = latin_word_screen.render(latin_word, page)
         self._screen = "latin_word"
-        self._page = 0
-        image = latin_word_screen.render(self._latin_word.get_cached())
+        self._page = effective_page
         self._push(image)
 
     def _show_reading(self, key: str, page: int) -> None:

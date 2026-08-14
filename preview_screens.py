@@ -76,7 +76,9 @@ def main() -> None:
     lws.refresh()
     latin_word = lws.get_cached()
     print("latin word:", latin_word)
-    save_preview(latin_word_screen.render(latin_word), "preview_latin_word.png")
+    lw_img, lw_page, lw_total = latin_word_screen.render(latin_word)
+    print(f"latin word page {lw_page + 1}/{lw_total}")
+    save_preview(lw_img, "preview_latin_word.png")
 
     for key in config.READING_KEYS:
         live = mrs.get_cached(key)

@@ -157,6 +157,36 @@ def paginate_text(
     return pages or [[]]
 
 
+def paginate_with_shorter_first_page(
+    draw: ImageDraw.ImageDraw,
+    text: str,
+    font: ImageFont.FreeTypeFont,
+    box: tuple[int, int, int, int],
+    first_page_top: int,
+    line_spacing: int = 4,
+) -> list[list[str]]:
+    """Like paginate_text, but the first page has less vertical room (starts
+    at `first_page_top` instead of `box`'s own top) -- e.g. to make room for
+    a title/citation shown only on page 1, while later pages reclaim that
+    space since they don't repeat it. Always returns at least one (possibly
+    empty) page."""
+    left, top, right, bottom = box
+    max_width = right - left
+    line_height = line_height_for(font, line_spacing)
+    lines = wrap_text(draw, text, font, max_width)
+    if not lines:
+        return [[]]
+
+    first_page_capacity = max(1, (bottom - first_page_top) // line_height)
+    rest_capacity = max(1, (bottom - top) // line_height)
+
+    pages = [lines[:first_page_capacity]]
+    remaining = lines[first_page_capacity:]
+    for i in range(0, len(remaining), rest_capacity):
+        pages.append(remaining[i : i + rest_capacity])
+    return pages
+
+
 def draw_lines(
     draw: ImageDraw.ImageDraw,
     lines: list[str],
