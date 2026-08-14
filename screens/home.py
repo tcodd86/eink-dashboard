@@ -11,8 +11,9 @@ import config
 from display import icons, renderer
 from sources.weather import Weather
 
-# Home-screen button mapping, top to bottom: 1=7-Day Forecast 2=First Reading 3=Psalm 4=Gospel
-_SIDEBAR_ICONS = ["calendar", "book", "note", "cross"]
+# Home-screen button mapping, top to bottom: 1=7-Day Forecast 2=Mass Readings menu
+# 3=Latin Word of the Day 4=unused
+_SIDEBAR_ICONS = ["calendar", "bible", "ae", None]
 
 
 def render(weather: Weather | None, now: datetime.datetime | None = None) -> Image.Image:

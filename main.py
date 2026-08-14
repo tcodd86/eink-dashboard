@@ -2,9 +2,11 @@
 screen state machine, and pushes rendered screens to the e-Paper display.
 
 Button behavior is context-dependent:
-  On the Home screen:     1=7-Day Forecast 2=First Reading 3=Psalm 4=Gospel
-  On the Forecast screen: 1=Back to Home   2/3/4=unused
-  On a reading screen:    1=Back to Home   2=Scroll up 3=Scroll down 4=Next reading
+  On the Home screen:          1=7-Day Forecast 2=Mass Readings menu 3=Latin Word 4=unused
+  On the Forecast screen:      1=Back to Home   2/3/4=unused
+  On the Mass Readings menu:   1=Back to Home   2=First Reading 3=Psalm 4=Gospel
+  On the Latin Word screen:    1=Back to Home   2/3/4=unused
+  On a reading screen:         1=Back to Home   2=Scroll up 3=Scroll down 4=Next reading
 """
 
 from __future__ import annotations
@@ -18,7 +20,9 @@ from PIL import Image
 
 import config
 from display.epd_driver import epd2in7
-from screens import forecast, home, reading
+from screens import forecast, home, reading, readings_menu
+from screens import latin_word as latin_word_screen
+from sources.latin_word import LatinWordSource
 from sources.mass_readings import MassReadingsSource
 from sources.weather import WeatherSource
 
@@ -34,9 +38,11 @@ class App:
         self._epd = epd2in7.EPD()
         self._weather = WeatherSource(config.LATITUDE, config.LONGITUDE, config.TEMP_UNIT)
         self._readings = MassReadingsSource()
+        self._latin_word = LatinWordSource()
         self._buttons: list[Button] = []
 
-        self._screen = "home"  # "home", "forecast", or one of config.READING_KEYS
+        # "home", "forecast", "readings_menu", "latin_word", or one of config.READING_KEYS
+        self._screen = "home"
         self._page = 0
 
     def start(self) -> None:
@@ -48,14 +54,16 @@ class App:
             raise RuntimeError("e-Paper init failed")
         self._epd.Clear()
 
-        logger.info("Fetching initial weather and readings")
+        logger.info("Fetching initial weather, readings, and Latin word")
         self._weather.refresh()
         self._readings.refresh()
+        self._latin_word.refresh()
 
         self._setup_buttons()
 
         threading.Thread(target=self._weather_loop, daemon=True).start()
         threading.Thread(target=self._readings_loop, daemon=True).start()
+        threading.Thread(target=self._latin_word_loop, daemon=True).start()
         threading.Thread(target=self._clock_loop, daemon=True).start()
 
         with self._lock:
@@ -81,6 +89,10 @@ class App:
     def _readings_loop(self) -> None:
         while not self._stop.wait(config.READINGS_REFRESH_CHECK_SECONDS):
             self._readings.refresh()
+
+    def _latin_word_loop(self) -> None:
+        while not self._stop.wait(config.LATIN_WORD_REFRESH_CHECK_SECONDS):
+            self._latin_word.refresh()
 
     def _clock_loop(self) -> None:
         while not self._stop.wait(config.CLOCK_REFRESH_SECONDS):
@@ -115,7 +127,10 @@ class App:
     def on_button2(self) -> None:
         with self._lock:
             if self._screen == "home":
-                logger.info("button2 pressed (home) -> %s", config.READING_KEYS[0])
+                logger.info("button2 pressed (home) -> readings_menu")
+                self._show_readings_menu()
+            elif self._screen == "readings_menu":
+                logger.info("button2 pressed (readings_menu) -> %s", config.READING_KEYS[0])
                 self._show_reading(config.READING_KEYS[0], page=0)
             elif self._screen in config.READING_KEYS:
                 logger.info("button2 pressed (%s) -> scroll up", self._screen)
@@ -126,7 +141,10 @@ class App:
     def on_button3(self) -> None:
         with self._lock:
             if self._screen == "home":
-                logger.info("button3 pressed (home) -> %s", config.READING_KEYS[1])
+                logger.info("button3 pressed (home) -> latin_word")
+                self._show_latin_word()
+            elif self._screen == "readings_menu":
+                logger.info("button3 pressed (readings_menu) -> %s", config.READING_KEYS[1])
                 self._show_reading(config.READING_KEYS[1], page=0)
             elif self._screen in config.READING_KEYS:
                 logger.info("button3 pressed (%s) -> scroll down", self._screen)
@@ -136,8 +154,8 @@ class App:
 
     def on_button4(self) -> None:
         with self._lock:
-            if self._screen == "home":
-                logger.info("button4 pressed (home) -> %s", config.READING_KEYS[2])
+            if self._screen == "readings_menu":
+                logger.info("button4 pressed (readings_menu) -> %s", config.READING_KEYS[2])
                 self._show_reading(config.READING_KEYS[2], page=0)
             elif self._screen in config.READING_KEYS:
                 idx = config.READING_KEYS.index(self._screen)
@@ -159,6 +177,18 @@ class App:
         self._screen = "forecast"
         self._page = 0
         image = forecast.render(self._weather.get_cached_forecast())
+        self._push(image)
+
+    def _show_readings_menu(self) -> None:
+        self._screen = "readings_menu"
+        self._page = 0
+        image = readings_menu.render()
+        self._push(image)
+
+    def _show_latin_word(self) -> None:
+        self._screen = "latin_word"
+        self._page = 0
+        image = latin_word_screen.render(self._latin_word.get_cached())
         self._push(image)
 
     def _show_reading(self, key: str, page: int) -> None:

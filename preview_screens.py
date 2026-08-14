@@ -12,7 +12,9 @@ from __future__ import annotations
 
 from PIL import Image
 
-from screens import forecast, home, reading
+from screens import forecast, home, reading, readings_menu
+from screens import latin_word as latin_word_screen
+from sources.latin_word import LatinWordSource
 from sources.mass_readings import MassReadingsSource, Reading
 from sources.weather import WeatherSource
 
@@ -68,6 +70,13 @@ def main() -> None:
 
     save_preview(home.render(weather), "preview_home.png")
     save_preview(forecast.render(ws.get_cached_forecast()), "preview_forecast.png")
+    save_preview(readings_menu.render(), "preview_readings_menu.png")
+
+    lws = LatinWordSource()
+    lws.refresh()
+    latin_word = lws.get_cached()
+    print("latin word:", latin_word)
+    save_preview(latin_word_screen.render(latin_word), "preview_latin_word.png")
 
     for key in config.READING_KEYS:
         live = mrs.get_cached(key)

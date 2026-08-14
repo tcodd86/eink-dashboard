@@ -1,9 +1,10 @@
 # E-ink Dashboard
 
 Shows the current time (updated every minute), current weather, a 7-day
-forecast, and today's Catholic Mass readings on a Waveshare 2.7" e-Paper HAT
-connected to a Raspberry Pi 3. Navigation is via the HAT's 4 physical
-buttons; the app starts automatically on boot via systemd.
+forecast, today's Catholic Mass readings, and a Latin word of the day on a
+Waveshare 2.7" e-Paper HAT connected to a Raspberry Pi 3. Navigation is via
+the HAT's 4 physical buttons; the app starts automatically on boot via
+systemd.
 
 ## Hardware
 
@@ -34,12 +35,12 @@ sourced from). If buttons ever seem mismatched on your unit, re-run
 
 Button behavior is context-dependent:
 
-| Button | On the Home screen | On the Forecast screen | On a reading screen |
-|---|---|---|---|
-| 1 (top) | Open 7-Day Forecast | Back to Home | Back to Home |
-| 2 | Open First Reading | unused | Scroll up one page |
-| 3 | Open Responsorial Psalm | unused | Scroll down one page |
-| 4 | Open Gospel | unused | Jump to next reading (First -> Psalm -> Gospel -> ...) |
+| Button | Home screen | Forecast screen | Mass Readings menu | Latin Word screen | A reading screen |
+|---|---|---|---|---|---|
+| 1 (top) | Open 7-Day Forecast | Back to Home | Back to Home | Back to Home | Back to Home |
+| 2 | Open Mass Readings menu | unused | Open First Reading | unused | Scroll up one page |
+| 3 | Open Latin Word of the Day | unused | Open Responsorial Psalm | unused | Scroll down one page |
+| 4 | unused | unused | Open Gospel | unused | Jump to next reading (First -> Psalm -> Gospel -> ...) |
 
 On Sundays/solemnities, the Mass has an extra "Second Reading" beyond the
 usual 3. Since there's no 5th button for it, it's appended onto the "First
@@ -47,8 +48,14 @@ Reading" screen below the First Reading, separated by a divider -- scroll
 down to reach it.
 
 The right-hand sidebar always shows an icon per button reflecting its
-current function (blank where a button is unused, e.g. 2-4 on the Forecast
-screen), so you don't need to memorize this table.
+current function (blank where a button is unused), so you don't need to
+memorize this table.
+
+The Latin word of the day comes from Transparent Language's free RSS feed
+(`feeds.feedblitz.com/latin-word-of-the-day`) -- an unofficial third-party
+source, same caveat as the Mass readings scrape below: the app caches the
+last successfully fetched word and keeps showing it if a day's fetch fails,
+rather than showing nothing.
 
 ## Setup
 

@@ -20,6 +20,9 @@ WEATHER_REFRESH_SECONDS = 600  # how often to poll Open-Meteo in the background
 # --- Mass readings -----------------------------------------------------------
 READINGS_REFRESH_CHECK_SECONDS = 3600  # how often to check whether the date rolled over
 
+# --- Latin word of the day -----------------------------------------------------
+LATIN_WORD_REFRESH_CHECK_SECONDS = 3600  # how often to check whether the date rolled over
+
 # --- Clock --------------------------------------------------------------------
 CLOCK_REFRESH_SECONDS = 60  # redraw the Home screen this often while it's on screen
 TIME_FORMAT = "%I:%M %p"  # 12-hour clock with AM/PM, e.g. "02:47 PM"
@@ -35,9 +38,11 @@ DATE_FORMAT = "%a, %b"  # day number is appended separately (see screens/home.py
 # (see the display rotation comment in main.py._push).
 #
 # Button meaning is context-dependent (see main.py):
-#   On the Home screen:    1=7-Day Forecast 2=First Reading 3=Psalm 4=Gospel
-#   On the Forecast screen: 1=Back to Home  2/3/4=unused
-#   On a reading screen:    1=Back to Home  2=Scroll up 3=Scroll down 4=Next reading
+#   On the Home screen:        1=7-Day Forecast 2=Mass Readings menu 3=Latin Word 4=unused
+#   On the Forecast screen:    1=Back to Home   2/3/4=unused
+#   On the Mass Readings menu: 1=Back to Home   2=First Reading 3=Psalm 4=Gospel
+#   On the Latin Word screen:  1=Back to Home   2/3/4=unused
+#   On a reading screen:       1=Back to Home   2=Scroll up 3=Scroll down 4=Next reading
 BUTTON_PINS = {
     "button1": 19,
     "button2": 13,

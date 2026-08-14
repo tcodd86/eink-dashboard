@@ -10,6 +10,8 @@ from typing import Callable
 
 from PIL import Image, ImageDraw
 
+from display import renderer
+
 Box = tuple[float, float, float, float]
 DrawFn = Callable[[ImageDraw.ImageDraw, Box, int], None]
 
@@ -262,6 +264,36 @@ def draw_cross(draw: ImageDraw.ImageDraw, box: Box, width: int = 3) -> None:
     draw.line((left + w * 0.20, top + h * 0.36, right - w * 0.20, top + h * 0.36), fill=BLACK, width=width)
 
 
+def draw_bible(draw: ImageDraw.ImageDraw, box: Box, width: int = 2) -> None:
+    """A closed book with a cross on the cover -- the top-level "Mass Readings"
+    menu icon. Distinct from draw_book's open book (used one level down, for
+    First Reading specifically) so the two don't read as the same thing."""
+    left, top, right, bottom = _square(box)
+    w, h = right - left, bottom - top
+    cover = (left + w * 0.12, top + h * 0.10, right - w * 0.12, bottom - h * 0.10)
+    draw.rectangle(cover, outline=BLACK, width=width)
+    spine_x = cover[0] + (cover[2] - cover[0]) * 0.16
+    draw.line((spine_x, cover[1], spine_x, cover[3]), fill=BLACK, width=width)
+    cover_w, cover_h = cover[2] - spine_x, cover[3] - cover[1]
+    cross_box = (spine_x + cover_w * 0.15, cover[1] + cover_h * 0.12, cover[2] - cover_w * 0.15, cover[3] - cover_h * 0.12)
+    draw_cross(draw, cross_box, width=max(1, width - 1))
+
+
+def draw_ae_ligature(draw: ImageDraw.ImageDraw, box: Box, width: int = 2) -> None:
+    """AE, the Latin digraph (as in Caesar, praesidium) -- the Latin Word of
+    the Day icon. Rendered as actual text (DejaVu Sans includes AE) rather
+    than hand-drawn vector lines, since letterforms don't read cleanly as
+    tiny hand-drawn shapes the way geometric icons do."""
+    left, top, right, bottom = box
+    h = bottom - top
+    font = renderer.load_font(int(h * 0.85), bold=True)
+    text = "Æ"
+    bbox = draw.textbbox((0, 0), text, font=font)
+    text_w, text_h = bbox[2] - bbox[0], bbox[3] - bbox[1]
+    cx, cy = (left + right) / 2, (top + bottom) / 2
+    draw.text((cx - text_w / 2 - bbox[0], cy - text_h / 2 - bbox[1]), text, font=font, fill=BLACK)
+
+
 _NAV_ICONS = {
     "home": draw_home,
     "up": draw_up_arrow,
@@ -271,6 +303,8 @@ _NAV_ICONS = {
     "note": draw_note,
     "cross": draw_cross,
     "calendar": draw_calendar,
+    "bible": draw_bible,
+    "ae": draw_ae_ligature,
 }
 
 
