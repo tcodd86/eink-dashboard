@@ -11,6 +11,7 @@ Button behavior is context-dependent:
 
 from __future__ import annotations
 
+import datetime
 import logging
 import signal
 import threading
@@ -95,7 +96,15 @@ class App:
             self._latin_word.refresh()
 
     def _clock_loop(self) -> None:
-        while not self._stop.wait(config.CLOCK_REFRESH_SECONDS):
+        # Waits until the next real minute boundary each iteration (rather
+        # than a fixed 60s from whenever this thread happened to start), so
+        # the displayed time can't sit stale for up to 59 seconds depending
+        # on an arbitrary boot-time phase offset.
+        while True:
+            now = datetime.datetime.now()
+            seconds_until_next_minute = 60 - now.second - now.microsecond / 1_000_000
+            if self._stop.wait(seconds_until_next_minute):
+                return
             with self._lock:
                 if self._screen == "home":
                     self._show_home()

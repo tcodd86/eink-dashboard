@@ -24,7 +24,10 @@ READINGS_REFRESH_CHECK_SECONDS = 3600  # how often to check whether the date rol
 LATIN_WORD_REFRESH_CHECK_SECONDS = 3600  # how often to check whether the date rolled over
 
 # --- Clock --------------------------------------------------------------------
-CLOCK_REFRESH_SECONDS = 60  # redraw the Home screen this often while it's on screen
+# Home screen redraws every real minute boundary while it's on screen (see
+# main.py._clock_loop) -- not a configurable interval, since a clock that
+# updates on any cadence other than "aligned to the actual minute" would
+# just be a different flavor of stale.
 TIME_FORMAT = "%I:%M %p"  # 12-hour clock with AM/PM, e.g. "02:47 PM"
 DATE_FORMAT = "%a, %b"  # day number is appended separately (see screens/home.py) to
 # avoid relying on the non-portable %-d / %#d "no leading zero" strftime flag
