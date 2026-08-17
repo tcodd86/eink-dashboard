@@ -48,6 +48,18 @@ _WEATHER_CODES = {
 _DEFAULT_ICON = "cloudy"
 
 
+def _require_numeric(value: float | None, field: str) -> float:
+    """Open-Meteo occasionally returns a 200 OK response with `null` for a
+    numeric field (a transient upstream data gap, not a request failure --
+    confirmed on real hardware: a null current.temperature_2m got cached as
+    a "successful" fetch and crashed round() on the next render). Raising
+    here routes it through refresh()'s existing except-and-keep-last-cached
+    handling instead of caching broken data."""
+    if value is None:
+        raise ValueError(f"Open-Meteo returned null for {field}")
+    return value
+
+
 @dataclasses.dataclass(frozen=True)
 class Weather:
     temperature: float
@@ -150,7 +162,8 @@ class WeatherSource:
         current = data["current"]
         code = current["weather_code"]
         description, icon = _WEATHER_CODES.get(code, (f"Weather code {code}", _DEFAULT_ICON))
-        weather = Weather(temperature=current["temperature_2m"], description=description, icon=icon)
+        temperature = _require_numeric(current["temperature_2m"], "current.temperature_2m")
+        weather = Weather(temperature=temperature, description=description, icon=icon)
 
         daily = data["daily"]
         forecast = []
@@ -160,8 +173,8 @@ class WeatherSource:
             forecast.append(
                 DayForecast(
                     date=datetime.date.fromisoformat(date_str),
-                    high=daily["temperature_2m_max"][i],
-                    low=daily["temperature_2m_min"][i],
+                    high=_require_numeric(daily["temperature_2m_max"][i], "daily.temperature_2m_max"),
+                    low=_require_numeric(daily["temperature_2m_min"][i], "daily.temperature_2m_min"),
                     description=day_description,
                     icon=day_icon,
                 )
@@ -179,10 +192,12 @@ class WeatherSource:
             hourly.append(
                 HourForecast(
                     time=hour_time,
-                    temperature=hourly_data["temperature_2m"][i],
+                    temperature=_require_numeric(hourly_data["temperature_2m"][i], "hourly.temperature_2m"),
                     description=hour_description,
                     icon=hour_icon,
-                    precipitation_probability=hourly_data["precipitation_probability"][i],
+                    precipitation_probability=_require_numeric(
+                        hourly_data["precipitation_probability"][i], "hourly.precipitation_probability"
+                    ),
                 )
             )
             if len(hourly) >= _HOURLY_WINDOW:
