@@ -92,18 +92,36 @@ class App:
         self._stop.set()
 
     # --- background loops ----------------------------------------------------
+    #
+    # Each loop body is wrapped in try/except: an uncaught exception in a
+    # daemon thread doesn't crash the app, it just silently kills that one
+    # thread forever (Python prints it to stderr and moves on) -- which
+    # previously meant a single transient error (e.g. a rare display-write
+    # hiccup) could permanently stop the once-a-minute clock tick, idle
+    # timeout, or a background refresh, with everything else (buttons, other
+    # loops) continuing to work fine. Catching and logging here means a bad
+    # iteration is skipped instead of ending the loop.
 
     def _weather_loop(self) -> None:
         while not self._stop.wait(config.WEATHER_REFRESH_SECONDS):
-            self._weather.refresh()
+            try:
+                self._weather.refresh()
+            except Exception:
+                logger.exception("weather_loop iteration failed; will retry next cycle")
 
     def _readings_loop(self) -> None:
         while not self._stop.wait(config.READINGS_REFRESH_CHECK_SECONDS):
-            self._readings.refresh()
+            try:
+                self._readings.refresh()
+            except Exception:
+                logger.exception("readings_loop iteration failed; will retry next cycle")
 
     def _latin_word_loop(self) -> None:
         while not self._stop.wait(config.LATIN_WORD_REFRESH_CHECK_SECONDS):
-            self._latin_word.refresh()
+            try:
+                self._latin_word.refresh()
+            except Exception:
+                logger.exception("latin_word_loop iteration failed; will retry next cycle")
 
     def _clock_loop(self) -> None:
         # Waits until the next real minute boundary each iteration (rather
@@ -115,17 +133,23 @@ class App:
             seconds_until_next_minute = 60 - now.second - now.microsecond / 1_000_000
             if self._stop.wait(seconds_until_next_minute):
                 return
-            with self._lock:
-                if self._screen == "home":
-                    self._show_home()
+            try:
+                with self._lock:
+                    if self._screen == "home":
+                        self._show_home()
+            except Exception:
+                logger.exception("clock_loop iteration failed; will retry next minute")
 
     def _idle_timeout_loop(self) -> None:
         while not self._stop.wait(config.IDLE_TIMEOUT_CHECK_SECONDS):
-            with self._lock:
-                idle_for = time.monotonic() - self._last_activity
-                if self._screen != "home" and idle_for >= config.IDLE_TIMEOUT_SECONDS:
-                    logger.info("No activity for %.0fs (screen=%s) -> home", idle_for, self._screen)
-                    self._show_home()
+            try:
+                with self._lock:
+                    idle_for = time.monotonic() - self._last_activity
+                    if self._screen != "home" and idle_for >= config.IDLE_TIMEOUT_SECONDS:
+                        logger.info("No activity for %.0fs (screen=%s) -> home", idle_for, self._screen)
+                        self._show_home()
+            except Exception:
+                logger.exception("idle_timeout_loop iteration failed; will retry next check")
 
     # --- buttons ---------------------------------------------------------------
 
