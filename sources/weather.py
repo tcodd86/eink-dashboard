@@ -48,18 +48,6 @@ _WEATHER_CODES = {
 _DEFAULT_ICON = "cloudy"
 
 
-def _require_numeric(value: float | None, field: str) -> float:
-    """Open-Meteo occasionally returns a 200 OK response with `null` for a
-    numeric field (a transient upstream data gap, not a request failure --
-    confirmed on real hardware: a null current.temperature_2m got cached as
-    a "successful" fetch and crashed round() on the next render). Raising
-    here routes it through refresh()'s existing except-and-keep-last-cached
-    handling instead of caching broken data."""
-    if value is None:
-        raise ValueError(f"Open-Meteo returned null for {field}")
-    return value
-
-
 @dataclasses.dataclass(frozen=True)
 class Weather:
     temperature: float
@@ -82,7 +70,7 @@ class HourForecast:
     temperature: float
     description: str
     icon: str
-    precipitation_probability: int  # percent, 0-100
+    precipitation_probability: int | None  # percent, 0-100; None if Open-Meteo had no value
 
 
 # How many hours of hourly forecast to keep, starting from the current hour.
@@ -97,6 +85,13 @@ _HOURLY_FETCH_HOURS = 48
 class WeatherSource:
     """Polls Open-Meteo for current weather, a 7-day forecast, and a 24-hour
     forecast, and caches the last good reading of each.
+
+    Open-Meteo occasionally returns a 200 OK response with `null` for a
+    numeric field (an upstream data gap, not a request failure). Each of the
+    three parts is validated and cached independently, so a null somewhere in
+    the forecasts can't block the current temperature from updating (and vice
+    versa) -- an earlier all-or-nothing version froze the Home screen's
+    temperature whenever any one of ~60 forecast values came back null.
 
     `refresh()` does the network call and should be called from a background
     thread on a timer. `get_cached()` / `get_cached_forecast()` /
@@ -121,9 +116,12 @@ class WeatherSource:
             logger.exception("Failed to fetch weather; keeping last cached value")
             return
         with self._lock:
-            self._cached = weather
-            self._cached_forecast = forecast
-            self._cached_hourly = hourly
+            if weather is not None:
+                self._cached = weather
+            if forecast:
+                self._cached_forecast = forecast
+            if hourly:
+                self._cached_hourly = hourly
 
     def get_cached(self) -> Weather | None:
         """Returns the last successfully fetched current weather, or None if a fetch hasn't succeeded yet."""
@@ -140,7 +138,9 @@ class WeatherSource:
         with self._lock:
             return self._cached_hourly
 
-    def _fetch(self) -> tuple[Weather, list[DayForecast], list[HourForecast]]:
+    def _fetch(self) -> tuple[Weather | None, list[DayForecast], list[HourForecast]]:
+        """Returns (current, daily, hourly). Current is None if its temperature
+        came back null; days/hours with a null temperature are skipped."""
         response = requests.get(
             _FORECAST_URL,
             params={
@@ -160,21 +160,28 @@ class WeatherSource:
         data = response.json()
 
         current = data["current"]
-        code = current["weather_code"]
-        description, icon = _WEATHER_CODES.get(code, (f"Weather code {code}", _DEFAULT_ICON))
-        temperature = _require_numeric(current["temperature_2m"], "current.temperature_2m")
-        weather = Weather(temperature=temperature, description=description, icon=icon)
+        weather = None
+        if current["temperature_2m"] is None:
+            logger.warning("Open-Meteo returned null current temperature; keeping last cached value")
+        else:
+            code = current["weather_code"]
+            description, icon = _WEATHER_CODES.get(code, (f"Weather code {code}", _DEFAULT_ICON))
+            weather = Weather(temperature=current["temperature_2m"], description=description, icon=icon)
 
         daily = data["daily"]
         forecast = []
         for i, date_str in enumerate(daily["time"]):
+            high, low = daily["temperature_2m_max"][i], daily["temperature_2m_min"][i]
+            if high is None or low is None:
+                logger.warning("Open-Meteo returned null high/low for %s; skipping that day", date_str)
+                continue
             day_code = daily["weather_code"][i]
             day_description, day_icon = _WEATHER_CODES.get(day_code, (f"Weather code {day_code}", _DEFAULT_ICON))
             forecast.append(
                 DayForecast(
                     date=datetime.date.fromisoformat(date_str),
-                    high=_require_numeric(daily["temperature_2m_max"][i], "daily.temperature_2m_max"),
-                    low=_require_numeric(daily["temperature_2m_min"][i], "daily.temperature_2m_min"),
+                    high=high,
+                    low=low,
                     description=day_description,
                     icon=day_icon,
                 )
@@ -187,17 +194,19 @@ class WeatherSource:
             hour_time = datetime.datetime.fromisoformat(time_str)
             if hour_time < current_hour:
                 continue
+            hour_temp = hourly_data["temperature_2m"][i]
+            if hour_temp is None:
+                logger.warning("Open-Meteo returned null temperature for %s; skipping that hour", time_str)
+                continue
             hour_code = hourly_data["weather_code"][i]
             hour_description, hour_icon = _WEATHER_CODES.get(hour_code, (f"Weather code {hour_code}", _DEFAULT_ICON))
             hourly.append(
                 HourForecast(
                     time=hour_time,
-                    temperature=_require_numeric(hourly_data["temperature_2m"][i], "hourly.temperature_2m"),
+                    temperature=hour_temp,
                     description=hour_description,
                     icon=hour_icon,
-                    precipitation_probability=_require_numeric(
-                        hourly_data["precipitation_probability"][i], "hourly.precipitation_probability"
-                    ),
+                    precipitation_probability=hourly_data["precipitation_probability"][i],
                 )
             )
             if len(hourly) >= _HOURLY_WINDOW:

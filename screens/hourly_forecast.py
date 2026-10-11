@@ -86,7 +86,7 @@ def _draw_row(
     temp_y = row_top + (row_bottom - row_top - _text_height(data_font)) / 2
     draw.text((_TEMP_X, temp_y), temp_str, font=data_font, fill=renderer.BLACK)
 
-    precip_str = f"{hour.precipitation_probability}%"
+    precip_str = "--" if hour.precipitation_probability is None else f"{hour.precipitation_probability}%"
     precip_width = draw.textlength(precip_str, font=data_font)
     precip_y = row_top + (row_bottom - row_top - _text_height(data_font)) / 2
     draw.text((content_right - 8 - precip_width, precip_y), precip_str, font=data_font, fill=renderer.BLACK)
