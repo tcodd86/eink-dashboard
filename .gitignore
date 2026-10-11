@@ -4,3 +4,4 @@ __pycache__/
 *.pyc
 preview_*.png
 config_local.py
+.pytest_cache/

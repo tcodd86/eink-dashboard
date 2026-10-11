@@ -64,7 +64,7 @@ def render(latin_word: LatinWord | None, page: int = 0) -> tuple[Image.Image, in
         # and a fixed size risks the same off-screen overflow the Home
         # screen's clock once had on DejaVu Sans (see screens/home.py).
         word_font = renderer.fit_font_to_width(
-            draw, latin_word.word, max_width=content_right - 16, max_size=22, bold=True, min_size=14
+            draw, latin_word.word, max_width=content_right - 16, max_size=22, bold=True, min_size=10
         )
         draw.text((8, _WORD_TOP), latin_word.word, font=word_font, fill=renderer.BLACK)
 

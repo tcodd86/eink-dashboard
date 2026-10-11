@@ -140,6 +140,24 @@ journalctl -u eink-dashboard@<username>.service -f
 
 Reboot the Pi (`sudo reboot`) to confirm it starts automatically.
 
+## Running the tests
+
+The test suite runs on any machine -- no Pi, display, network, or
+`config_local.py` needed (`tests/conftest.py` substitutes stand-ins for the
+Pi-only display driver and `gpiozero`, and all network calls are faked):
+
+```bash
+python3 -m venv .devvenv
+./.devvenv/bin/pip install -r requirements-dev.txt   # .devvenv\Scripts\pip on Windows
+./.devvenv/bin/python -m pytest
+```
+
+What's covered: weather/Mass readings/Latin word parsing and caching
+(including the null-field and failed-fetch cases that caused real bugs),
+text wrapping and pagination, every icon, every screen's content and
+sidebar buttons and that nothing overflows into the sidebar, and `main.py`'s
+button state machine, background loops, idle timeout, and startup.
+
 ## Troubleshooting
 
 - **`e-Paper init failed` / SPI errors**: SPI isn't enabled. Run

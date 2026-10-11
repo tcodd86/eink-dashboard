@@ -36,6 +36,11 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name
 logger = logging.getLogger(__name__)
 
 
+def seconds_until_next_minute(now: datetime.datetime) -> float:
+    """Seconds from `now` until the next :00 minute boundary (60 when already exactly on one)."""
+    return 60 - now.second - now.microsecond / 1_000_000
+
+
 class App:
     def __init__(self) -> None:
         self._lock = threading.RLock()
@@ -129,9 +134,7 @@ class App:
         # the displayed time can't sit stale for up to 59 seconds depending
         # on an arbitrary boot-time phase offset.
         while True:
-            now = datetime.datetime.now()
-            seconds_until_next_minute = 60 - now.second - now.microsecond / 1_000_000
-            if self._stop.wait(seconds_until_next_minute):
+            if self._stop.wait(seconds_until_next_minute(datetime.datetime.now())):
                 return
             try:
                 with self._lock:

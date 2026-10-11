@@ -1,0 +1,7 @@
+# For running the test suite on any machine (no Pi needed). Deliberately does
+# not include requirements.txt: gpiozero/spidev are Pi-only, and the tests
+# replace them with stand-ins (see tests/conftest.py).
+Pillow
+requests
+catholic-mass-readings
+pytest
